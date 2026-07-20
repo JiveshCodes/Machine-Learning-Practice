@@ -1018,20 +1018,25 @@ def make_notebook_json(folder, data):
         "source": [
             "## 6. Exploratory Data Analysis (EDA)\n",
             "\n",
-            "We visualize the distributions and correlations of features."
+            "We perform visual analysis of the dataset, examining correlation heatmaps and target-colored feature distributions to understand the underlying boundaries."
         ]
     })
     
+    # Custom EDA code based on category
+    eda_code = "sns.heatmap(df.corr(numeric_only=True), annot=True, cmap='coolwarm', fmt='.2f')\nplt.title('Correlation Matrix Heatmap')\nplt.show()\n\n"
+    if data["category"] == "regression":
+        eda_code += "# Histograms of features and target\nfig, axes = plt.subplots(1, len(df.columns), figsize=(5 * len(df.columns), 5))\nif len(df.columns) == 1:\n    sns.histplot(df.iloc[:, 0], kde=True, ax=axes, color='skyblue')\n    axes.set_title(f'Histogram of {df.columns[0]}')\nelse:\n    for idx, col in enumerate(df.columns):\n        sns.histplot(df[col], kde=True, ax=axes[idx], color='skyblue')\n        axes[idx].set_title(f'Histogram of {col}')\nplt.tight_layout()\nplt.show()"
+    elif data["category"] == "classification":
+        eda_code += "# 1. Feature Histograms (Continuous distributions colored by class)\nX_cols = df.columns[:-1]\ntarget_col = df.columns[-1]\nfig, axes = plt.subplots(1, len(X_cols), figsize=(5 * len(X_cols), 5))\nif len(X_cols) == 1:\n    sns.histplot(data=df, x=X_cols[0], hue=target_col, kde=True, ax=axes, multiple='stack', palette='coolwarm')\n    axes.set_title(f'Histogram of {X_cols[0]}')\nelse:\n    for idx, col in enumerate(X_cols):\n        sns.histplot(data=df, x=col, hue=target_col, kde=True, ax=axes[idx], multiple='stack', palette='coolwarm')\n        axes[idx].set_title(f'Histogram of {col}')\nplt.tight_layout()\nplt.show()\n\n# 2. Class Balance Pie Chart and Bar Graph\nfig, axes = plt.subplots(1, 2, figsize=(14, 6))\n# Pie chart\nclass_counts = df[target_col].value_counts()\naxes[0].pie(class_counts, labels=class_counts.index, autopct='%1.1f%%', colors=['#ff9999','#66b3ff', '#99ff99'], startangle=90, wedgeprops={'edgecolor': 'black'})\naxes[0].set_title('Class Balance (Pie Chart)')\n# Bar chart\nsns.countplot(data=df, x=target_col, ax=axes[1], palette='Set2')\naxes[1].set_title('Class Counts (Bar Graph)')\nplt.tight_layout()\nplt.show()"
+    else: # clustering and PCA
+        eda_code += "# Histograms of features\nfig, axes = plt.subplots(1, len(df.columns), figsize=(5 * len(df.columns), 5))\nif len(df.columns) == 1:\n    sns.histplot(df.iloc[:, 0], kde=True, ax=axes, color='lightgreen')\n    axes.set_title(f'Histogram of {df.columns[0]}')\nelse:\n    for idx, col in enumerate(df.columns):\n        sns.histplot(df[col], kde=True, ax=axes[idx], color='lightgreen')\n        axes[idx].set_title(f'Histogram of {col}')\nplt.tight_layout()\nplt.show()"
+        
     cells.append({
         "cell_type": "code",
         "execution_count": None,
         "metadata": {},
         "outputs": [],
-        "source": [
-            "sns.heatmap(df.corr(numeric_only=True), annot=True, cmap='coolwarm', fmt='.2f')\n",
-            "plt.title('Correlation Matrix')\n",
-            "plt.show()"
-        ]
+        "source": [eda_code]
     })
     
     # 7. Feature Engineering
